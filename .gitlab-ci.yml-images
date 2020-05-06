@@ -1,0 +1,29 @@
+#image: maven:3.6.3-jdk-8
+
+before_script:
+  - ls
+  
+services:
+  - name: mysql:latest
+    alias: mysql-1  
+  
+build:
+  image: maven:3.6.3-jdk-8
+  stage: build
+  tags:
+    - newdocker
+  script:
+    - ls
+    - sleep 2
+    - echo "mvn clean "
+    - sleep 10
+
+deploy:
+  stage: deploy
+  tags:
+    - newdocker
+  script:
+    - echo "deploy"
+  environment:
+    name: production
+    url: http://www.baidu.com

@@ -1,0 +1,96 @@
+before_script:
+  - echo "before-script!!"
+
+variables:
+  DOMAIN: example.com
+  scannerHome: "/usr/local/buildtools/sonar-scanner-3.2.0.1227-linux"
+  projectPath: "src"
+  GIT_DEPTH: 0
+
+stages:
+  - build
+  - test
+  - codescan
+  
+  
+build:
+  stage: build
+  only:
+    - merge_requests
+  tags:
+    - build
+  script:
+    - ls
+    - id
+    - mvn clean package -DskipTests
+    - ls target
+  after_script:
+    - echo "after script in job"
+  artifacts: 
+    paths:
+      - .m2/repository/
+      - target/
+    reports:
+      junit: target/surefire-reports/TEST-*.xml
+
+
+
+unittest:
+  stage: test
+  tags:
+    - build
+  script:
+    - echo "run test"
+    - mvn test
+  retry:
+    max: 2
+    when:
+      - script_failure
+  dependencies:
+    - build
+  only:
+    - merge_requests
+  
+codescan:
+  stage: codescan
+  only:
+    - dev
+  tags:
+    - build 
+  script:
+    - "$scannerHome/bin/sonar-scanner -Dsonar.projectKey=${CI_PROJECT_NAME} \
+                                      -Dsonar.login=${SONAR_TOKEN} \
+                                      -Dsonar.projectName=${CI_PROJECT_NAME} \
+                                      -Dsonar.projectVersion=${CI_COMMIT_REF_NAME} \
+                                      -Dsonar.ws.timeout=30 \
+                                      -Dsonar.projectDescription=${CI_PROJECT_TITLE} \
+                                      -Dsonar.links.homepage=${CI_PROJECT_URL} \
+                                      -Dsonar.sources=${projectPath} \
+                                      -Dsonar.sourceEncoding=UTF-8 \
+                                      -Dsonar.java.binaries=target/classes \
+                                      -Dsonar.java.test.binaries=target/test-classes \
+                                      -Dsonar.java.surefire.report=target/surefire-reports  "
+                                      #-Dsonar.branch.name=${CI_COMMIT_REF_NAME} -X "
+
+codescan2:
+  only:
+    - merge_requests
+  stage: codescan
+  tags:
+    - build 
+  script:
+    - echo $CI_MERGE_REQUEST_IID $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME  $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+    - "$scannerHome/bin/sonar-scanner -Dsonar.projectKey=${CI_PROJECT_NAME} \
+                                      -Dsonar.projectName=${CI_PROJECT_NAME} \
+                                      -Dsonar.projectVersion=${CI_COMMIT_REF_NAME} \
+                                      -Dsonar.ws.timeout=30 \
+                                      -Dsonar.projectDescription=${CI_PROJECT_TITLE} \
+                                      -Dsonar.links.homepage=${CI_PROJECT_URL} \
+                                      -Dsonar.sources=${projectPath} \
+                                      -Dsonar.sourceEncoding=UTF-8 \
+                                      -Dsonar.java.binaries=target/classes \
+                                      -Dsonar.java.test.binaries=target/test-classes \
+                                      -Dsonar.java.surefire.report=target/surefire-reports  \
+                                      -Dsonar.pullrequest.key=${CI_MERGE_REQUEST_IID} \
+                                      -Dsonar.pullrequest.branch=${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME} \
+                                      -Dsonar.pullrequest.base=${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} "

@@ -1,0 +1,8 @@
+stages:
+  - build
+
+child-a-build:
+  stage: build
+  script: 
+    - echo "hello3a"
+    - sleep 10

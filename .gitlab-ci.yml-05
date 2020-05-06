@@ -1,0 +1,92 @@
+workflow:
+  rules:
+    - if: '$GITLAB_USER_NAME != "adminuser"'
+      when: never
+    - when: always
+
+
+before_script:
+  - echo "$GITLAB_USER_ID"
+  - echo "$GITLAB_USER_NAME"
+  - echo "$GITLAB_USER_FULL_NAME"
+
+variables:
+  DOMAIN: example.com
+
+
+cache: 
+  paths:
+   - target/
+
+stages:
+  - build
+  - test
+  - deploy
+  
+build:
+  stage: build
+  tags:
+    - build
+  only:
+    - master
+  script:
+    - ls
+    - id
+    - mvn test
+    - mvn cobertura:cobertura
+    - ls target
+    - echo "$DOMAIN"
+    - false && true ; exit_code=$?
+    - if [ $exit_code -ne 0 ]; then echo "Previous command failed"; fi;
+    - sleep 2;
+  after_script:
+    - echo "after script in job"
+  artifacts:
+    name: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME"
+    when: on_success
+    #expose_as: 'artifact 1'
+    paths:
+      - target/*.jar
+      #- target/surefire-reports/TEST*.xml
+    reports:
+      junit: target/surefire-reports/TEST-*.xml
+      cobertura: target/site/cobertura/coverage.xml
+  coverage: '/Code coverage: \d+\.\d+/'
+
+
+unittest:
+  dependencies:
+    - build
+  stage: test
+  tags:
+    - build
+  only:
+    - master
+  script:
+    - echo "run test"
+    - echo 'test' >> target/a.txt
+    - ls target
+  retry:
+    max: 2
+    when:
+      - script_failure
+  
+deploy:
+  stage: deploy
+  tags:
+    - build
+  only:
+    - master
+  script:
+    - echo "run deploy"
+    - ls target
+  retry:
+    max: 2
+    when:
+      - script_failure
+      
+      
+
+after_script:
+  - echo "after-script"
+  

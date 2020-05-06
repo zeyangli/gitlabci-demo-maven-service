@@ -1,0 +1,77 @@
+stages:
+  - build
+  - test
+  - deploy
+
+
+
+include:
+  - template: Auto-DevOps.gitlab-ci.yml
+  
+
+
+module-a-build:
+  stage: build
+  script: 
+    - echo "hello3a"
+    - sleep 5
+    
+module-b-build:
+  stage: build
+  script: 
+    - echo "hello3b"
+    - sleep 10
+    
+module-c-build:
+  stage: build
+  script: 
+    - echo "hello3c"
+    - sleep 15
+
+module-a-test:
+  stage: test
+  script: 
+    - echo "hello3a"
+    - sleep 10
+  needs: 
+    - job: "module-a-build"
+      artifacts: true
+    
+module-b-test:
+  stage: test
+  script: 
+    - echo "hello3b"
+    - sleep 10
+  needs: 
+    - job: "module-b-build"
+      artifacts: true
+    
+module-c-test:
+  stage: test
+  script: 
+    - echo "hello3c"
+    - sleep 10
+  needs:     
+    - job: "module-c-build"
+      artifacts: true
+
+module-a-deploy:
+  stage: deploy
+  script: 
+    - echo "hello3c"
+    - sleep 10
+  needs: ["module-a-test"]
+    
+module-b-deploy:
+  stage: deploy
+  script: 
+    - echo "hello3c"
+    - sleep 10
+  needs: ["module-b-test"]
+
+module-c-deploy:
+  stage: deploy
+  script: 
+    - echo "hello3c"
+    - sleep 10
+  needs: ["module-c-test"]

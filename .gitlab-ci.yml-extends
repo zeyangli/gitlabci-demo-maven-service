@@ -1,0 +1,30 @@
+include:
+  local: 'ci/localci.yml'
+
+stages:
+  - test
+  - build 
+  - deploy
+  
+variables:
+  RSPEC: 'test'
+
+.tests:
+  script: echo "mvn test"
+  stage: test
+  only:
+    refs:
+      - branches
+
+testjob:
+  extends: .tests
+  script: echo "mvn clean test"
+  only:
+    variables:
+      - $RSPEC
+      
+
+newbuildjob:
+  script:
+    - echo "123"
+  extends: .template

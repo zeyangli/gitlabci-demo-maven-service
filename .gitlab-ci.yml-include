@@ -1,0 +1,43 @@
+stages:
+  - build
+  - test
+  - deploy
+
+include:
+  #local: 'ci/localci.yml'
+  #project: demo/demo-java-service
+  #ref: master
+  #file: '.gitlab-ci.yml'
+  remote: 'http://192.168.1.200:30088/demo/demo-java-service/-/raw/master/.gitlab-ci.yml'
+  
+deployjob:
+  stage: deploy
+  script:
+    - echo 'deploy2222'
+    
+module-a-build:
+  stage: build
+  script: 
+    - echo "hello3a"
+    - sleep 10
+    
+module-b-build:
+  stage: build
+  script: 
+    - echo "hello3b"
+    - sleep 20
+
+module-a-test:
+  stage: test
+  script: 
+    - echo "hello3a"
+    - sleep 5
+  needs: ["module-a-build"]
+    
+module-b-test:
+  stage: test
+  script: 
+    - echo "hello3b"
+    - sleep 5
+  needs: ["module-b-build"]
+    

@@ -1,0 +1,16 @@
+#stages:
+#  - deploy
+  
+deployjob:
+  stage: deploy
+  script:
+    - echo 'deploy'
+  only:
+    - dev
+
+.template:
+  stage: build
+  script: 
+    - echo "build"
+  only:
+    - master

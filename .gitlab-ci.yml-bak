@@ -1,0 +1,107 @@
+before_script:
+  - echo "before-script!!"
+
+variables:
+  DOMAIN: example.com
+
+
+stages:
+  - build
+  - test
+  - codescan
+  - deploy
+  
+build:
+  before_script:
+    - echo "before-script in job"
+  stage: build
+  tags:
+    - build
+  only:
+    - master
+  script:
+    - ls
+    - id
+    - mvn clean package -DskipTests
+    - ls target
+    - echo "$DOMAIN"
+    - false && true ; exit_code=$?
+    - if [ $exit_code -ne 0 ]; then echo "Previous command failed"; fi;
+    - sleep 2;
+  after_script:
+    - echo "after script in job"
+  cache: 
+    key: build
+    paths:
+      - .m2/repository/
+      - target/
+
+
+
+unittest:
+  stage: test
+  tags:
+    - build
+  only:
+    - master
+  script:
+    - echo "run test"
+    - ls target
+  retry:
+    max: 2
+    when:
+      - script_failure
+  
+    
+interfacetest:
+  stage: test
+  tags:
+    - build
+  only:
+    - master
+  script:
+    - echo "run test"
+    - sleep 2;
+
+
+deploy:
+  stage: deploy
+  tags:
+    - deploy
+  only:
+    - master
+  script:
+    - echo "hello deploy"
+    - sleep 2;
+  #when: manual
+  allow_failure: true
+  
+timedrollout:
+  stage: deploy
+  script: 
+    - echo 'Rolling out 10% ...'
+  when: delayed
+  start_in: '2'
+  
+codescan:
+  stage: codescan
+  tags:
+    - build
+  script:
+    - echo "codescan"
+    - sleep 1;
+  #parallel: 5
+  rules:
+    - exists:
+      - Jenkinsfile
+      when: on_success 
+    - changes:
+      - Jenkinsfile
+      when: on_success
+    - if: '$DOMAIN == "example.com"'
+      when: on_success
+    - when: on_success
+
+after_script:
+  - echo "after-script"
+  - ech

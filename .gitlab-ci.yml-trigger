@@ -1,0 +1,18 @@
+stages:
+  - deploy
+  - build
+
+buildjob:
+  stage: build
+  script:
+    - echo "hello"
+
+staging:
+  variables:
+    ENVIRONMENT: staging
+  stage: deploy
+  trigger: 
+    #project: demo/demo-java-service
+    #branch: master
+    include: 'ci/child01.yml'
+    strategy: depend

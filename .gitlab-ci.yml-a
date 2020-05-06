@@ -1,0 +1,65 @@
+stages:
+  - build
+  - test
+  - code_analysis
+
+  
+cache:
+  paths:
+    - target/
+
+#编译构建
+build-maven:
+  stage: build
+  tags:
+    - build
+  script: 
+    - mvn clean package -DskipTests
+    - ls 
+  artifacts:
+    paths:
+      - target/*.jar
+    reports:
+      junit: target/surefire-reports/TEST-*.xml
+
+    
+#单元测试
+test-maven:
+  stage: test
+  tags:
+    - build
+  script:
+    - mvn test
+    - ls 
+    
+    
+#代码扫描
+code-analysis-java-mr:
+  variables:
+    scannerHome: "/usr/local/buildtools/sonar-scanner-3.2.0.1227-linux"
+    projectPath: "src"
+    GIT_DEPTH: 0
+  stage: code_analysis
+  tags:
+    - build
+  only:
+    - master
+    - merge_requests
+  script:
+    - echo $CI_MERGE_REQUEST_IID $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME  $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+    - "$scannerHome/bin/sonar-scanner -Dsonar.projectKey=${CI_PROJECT_NAME} \
+                                      -Dsonar.projectName=${CI_PROJECT_NAME} \
+                                      -Dsonar.projectVersion=${CI_COMMIT_REF_NAME} \
+                                      -Dsonar.ws.timeout=30 \
+                                      -Dsonar.projectDescription=${CI_PROJECT_TITLE} \
+                                      -Dsonar.links.homepage=${CI_PROJECT_URL} \
+                                      -Dsonar.sources=${projectPath} \
+                                      -Dsonar.sourceEncoding=UTF-8 \
+                                      -Dsonar.java.binaries=target/classes \
+                                      -Dsonar.java.test.binaries=target/test-classes \
+                                      -Dsonar.java.surefire.report=target/surefire-reports  \
+                                      -Dsonar.pullrequest.key=${CI_MERGE_REQUEST_IID} \
+                                      -Dsonar.pullrequest.branch=${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME} \
+                                      -Dsonar.pullrequest.base=${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} "
+
+ 

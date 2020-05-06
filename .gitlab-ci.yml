@@ -1,0 +1,17 @@
+include:
+    - project: 'demo/demo-gitlabci-service'
+      ref: master
+      file: 'templates/maven-pipeline.yml'
+  
+  
+variables:
+  BUILD_SHELL: 'mvn clean package  -DskipTests'  
+  TEST_SHELL: 'mvn  test'
+  CACHE_DIR: 'target/'
+  RUN_DEPLOY: 'yes'
+  TARGET_DIR : 'target/'
+  ARTIFACT_PATH : 'target/*.jar'
+  # 代码扫描
+  SCANNER_HOME : "/usr/local/buildtools/sonar-scanner-3.2.0.1227-linux"
+  SCAN_DIR : "src"
+  GIT_DEPTH: 0
